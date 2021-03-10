@@ -1,14 +1,13 @@
 import './App.css';
-// import Home from './pages/home';
 import Tree from './pages/Tree';
+import createRowData from './helpers/createRowData'
 
 
 function App() {
   return (
     <div className="App">
-      <Tree />     
+      <Tree rows={createRowData(50)} />  
     </div>
   );
 }
-
 export default App;

@@ -4,7 +4,7 @@ import createRowData from "../helpers/createRowData";
 import { Data } from "react-data-grid-addons";
 
 const defaultColumnProperties = {
-  width: 160
+  width: 140
 };
 
 const columns = [

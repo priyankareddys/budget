@@ -1,15 +1,12 @@
-import logo from './logo.svg';
 import './App.css';
-import Home from './pages/home';
-import Header from './components/Header';
-import Footer from './components/Footer';
+// import Home from './pages/home';
+import Tree from './pages/Tree';
+
 
 function App() {
   return (
     <div className="App">
-      <Header />
-      <Home />     
-      <Footer /> 
+      <Tree />     
     </div>
   );
 }

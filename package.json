@@ -23,7 +23,11 @@
     "react-paginate": "^7.1.0",
     "react-scripts": "4.0.3",
     "styled-components": "^5.2.1",
-    "web-vitals": "^1.1.0"
+    "web-vitals": "^1.1.0",
+    "faker": "4.1.0",
+    "react-data-grid": "5.0.3",
+    "react-data-grid-addons": "5.0.4-2",
+    "immutable": "3.8.2"
   },
   "scripts": {
     "start": "react-scripts start",

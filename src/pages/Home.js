@@ -313,6 +313,30 @@ function Home() {
             },
             summaryFormatter: ({ row }) => totalView(row, '2026Count')
         },
+        {
+            key: '2027',
+            name: 'FY 2027',
+            width: 150,
+            editor: TextEditor,
+            formatter: (props) => 
+            {
+                const value = props.row['2027'];
+                return <div class="row-pad" style={{ textAlign: 'right' }}>{currencyFormatter.format(value)}</div>
+            },
+            summaryFormatter: ({ row }) => totalView(row, '2027Count')
+        },
+        {
+            key: '2028',
+            name: 'FY 2028',
+            width: 150,
+            editor: TextEditor,
+            formatter: (props) => 
+            {
+                const value = props.row['2028'];
+                return <div class="row-pad" style={{ textAlign: 'right' }}>{currencyFormatter.format(value)}</div>
+            },
+            summaryFormatter: ({ row }) => totalView(row, '2026Count')
+        },
     ];
 
     function onRowDelete(e, { rowIdx }) {

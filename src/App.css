@@ -27,86 +27,7 @@
 .App-link {
   color: #61dafb;
 }
-.budgetAir_table {
-  width: 100%;
-}
-.budgetAir_table tr:nth-child(2n) {
-  background-color: #f5f5f5;
-}
-.budgetAir_table tr {
-  background-color: #fff;
-  border-bottom: 1px solid #000;
-}
 
-.budgetAir_table tr td{
-  border-bottom: 2px solid #ddd;
-}
-
-.budgetAir_table--edited {
-  background-color: #fff1d0;
-}
-.budgetAir_table--editable {
-  background-color: #fff;
-}
-
-
-.budgetAir_table_inner {
-  width: 100%;
-}
-.budgetAir_table_inner tr{
-  width: 100%;
-  padding-left: 1em;
-}
-
-.btn {
-  border: 1px solid #ccc;
-  height: 30px;
-  font-weight: 500;
-  font-size: 16px;
-  min-width: 80px;
-  line-height: 30px;
-  background: #f5f5f5;
-  color: #fff;
-  cursor: pointer;
-  padding: 0 10px;
-  border-radius: 2px;
-}
-.btn-primary {
-  background: #4e8be2;
-}
-.btn-disable {
-  background: #ccc;
-}
-.icon {
-  width: 20px;
-  height: 20px;
-}
-
-.input {
-  color: #555;
-  height: 30px;
-  line-height: 30px;
-  width: auto;
-  font-size: 14px;
-  font-weight: 500;
-  text-decoration: none;
-  padding: 0 10px;
-  border: 1px solid #ddd;
-  background: white;
-  outline: none;
-  box-shadow: none;
-  border-radius: 2px;
-  box-sizing: border-box;
-}
-
-.input__small {
-  width: 75%;
-}
-
-.wdth-175 {
-  width: 175px;
-  height: 40px;
-}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -115,3 +36,82 @@
     transform: rotate(360deg);
   }
 }
+
+.react-contextmenu {
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 0.25rem;
+    color: #373a3c;
+    font-size: 16px;
+    margin: 2px 0 0;
+    min-width: 160px;
+    outline: none;
+    opacity: 0;
+    padding: 5px 0;
+    pointer-events: none;
+    text-align: left;
+    transition: opacity 250ms ease !important;
+  }
+  .react-contextmenu.react-contextmenu--visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .react-contextmenu-item {
+    background: 0 0;
+    border: 0;
+    color: #373a3c;
+    cursor: pointer;
+    font-weight: 400;
+    line-height: 1.5;
+    padding: 3px 20px;
+    text-align: inherit;
+    white-space: nowrap;
+  }
+  .react-contextmenu-item.react-contextmenu-item--active,
+  .react-contextmenu-item.react-contextmenu-item--selected {
+    color: #fff;
+    background-color: #20a0ff;
+    border-color: #20a0ff;
+    text-decoration: none;
+  }
+  .react-contextmenu-item.react-contextmenu-item--disabled,
+  .react-contextmenu-item.react-contextmenu-item--disabled:hover {
+    background-color: transparent;
+    border-color: rgba(0, 0, 0, 0.15);
+    color: #878a8c;
+  }
+  .react-contextmenu-item--divider {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: inherit;
+    margin-bottom: 3px;
+    padding: 2px 0;
+  }
+  .react-contextmenu-item--divider:hover {
+    background-color: transparent;
+    border-color: rgba(0, 0, 0, 0.15);
+  }
+  .react-contextmenu-item.react-contextmenu-submenu {
+    padding: 0;
+  }
+  .react-contextmenu-item.react-contextmenu-submenu > .react-contextmenu-item::after {
+    content: "▶";
+    display: inline-block;
+    position: absolute;
+    right: 7px;
+  }
+  .example-multiple-targets::after {
+    content: attr(data-count);
+    display: block;
+  }
+
+  .c1wupbe700-canary37 {
+    padding: 0 !important;
+  }
+  .row-pad {
+    padding: 0 8px;
+  }
+  .h19m9p7h700-canary37 {
+    background: #54545f !important; 
+    color: #fff;
+  }

@@ -28,6 +28,8 @@ function createData(count, level) {
                 2024: faker.random.float(),
                 2025: faker.random.float(),
                 2026: faker.random.float(),
+                2027: faker.random.float(),
+                2028: faker.random.float(),
                 childLevel: level,
                 isExpanded: false,
             }
@@ -61,6 +63,8 @@ const defaultRows = [
         2024: faker.random.float(),
         2025: faker.random.float(),
         2026: faker.random.float(),
+        2027: faker.random.float(),
+        2028: faker.random.float(),
     },
     {
         id: 5,
@@ -73,6 +77,8 @@ const defaultRows = [
         2024: faker.random.float(),
         2025: faker.random.float(),
         2026: faker.random.float(),
+        2027: faker.random.float(),
+        2028: faker.random.float(),
     },
     {
         id: 6,
@@ -85,6 +91,8 @@ const defaultRows = [
         2024: faker.random.float(),
         2025: faker.random.float(),
         2026: faker.random.float(),
+        2027: faker.random.float(),
+        2028: faker.random.float(),
     },
     {
         id: 7,
@@ -97,6 +105,36 @@ const defaultRows = [
         2024: faker.random.float(),
         2025: faker.random.float(),
         2026: faker.random.float(),
+        2027: faker.random.float(),
+        2028: faker.random.float(),
+    },
+    {
+        id: 8,
+        title: 'Charity',
+        2019: faker.random.float(),
+        2020: faker.random.float(),
+        2021: faker.random.float(),
+        2022: faker.random.float(),
+        2023: faker.random.float(),
+        2024: faker.random.float(),
+        2025: faker.random.float(),
+        2026: faker.random.float(),
+        2027: faker.random.float(),
+        2028: faker.random.float(),
+    },
+    {
+        id: 9,
+        title: 'Charity',
+        2019: faker.random.float(),
+        2020: faker.random.float(),
+        2021: faker.random.float(),
+        2022: faker.random.float(),
+        2023: faker.random.float(),
+        2024: faker.random.float(),
+        2025: faker.random.float(),
+        2026: faker.random.float(),
+        2027: faker.random.float(),
+        2028: faker.random.float(),
     }
 ];
 
@@ -180,6 +218,9 @@ function Home() {
                 '2024Count': _.sumBy(state.rows, '2024'),
                 '2025Count': _.sumBy(state.rows, '2025'),
                 '2026Count': _.sumBy(state.rows, '2026'),
+                '2027Count': _.sumBy(state.rows, '2027'),
+                '2028Count': _.sumBy(state.rows, '2028'),
+
             }
         })
 
@@ -335,7 +376,7 @@ function Home() {
                 const value = props.row['2028'];
                 return <div class="row-pad" style={{ textAlign: 'right' }}>{currencyFormatter.format(value)}</div>
             },
-            summaryFormatter: ({ row }) => totalView(row, '2026Count')
+            summaryFormatter: ({ row }) => totalView(row, '2028Count')
         },
     ];
 

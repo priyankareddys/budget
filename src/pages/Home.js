@@ -1,8 +1,9 @@
-import React, { useReducer, useMemo } from "react";
+import React, { useReducer, useMemo, useState } from "react";
 import DataGrid, { TextEditor, Row as GridRow } from "react-data-grid";
 import _ from "lodash";
 import faker from "faker";
-import { createPortal } from "react-dom";
+import AddRowModal from "../components/AddRowModal";
+
 import {
   ContextMenu,
   MenuItem,
@@ -179,12 +180,29 @@ function deleteSubRow(state, id) {
   return { rows: newRows };
 }
 
+function addParentRow(state, index, data) {
+  let { rows } = state;
+  rows.splice(index, 0, data);
+  return { rows: rows };
+}
+
+function deleteRow(state, index) {
+  let { rows } = state;
+  // console.log(index);
+  rows.splice(index, 1);
+  return { rows: rows };
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case "toggleSubRow":
       return toggleSubRow(state, action.id);
     case "deleteSubRow":
       return deleteSubRow(state, action.id);
+    case "addParentRow":
+      return addParentRow(state, action.parentIndex, action.data);
+    case "deleteRow":
+      return deleteRow(state, action.index);
     default:
       return state;
   }
@@ -200,7 +218,7 @@ function currencyView(props, key) {
 function totalView(row, key) {
   return (
     <strong>
-      <div class="row-pad" style={{ textAlign: "right" }}>
+      <div className="row-pad" style={{ textAlign: "right" }}>
         {currencyFormatter.format(row[key])}
       </div>
     </strong>
@@ -218,9 +236,15 @@ function RowRenderer(props) {
   );
 }
 
+function showAddRowModal(parentIndex, childIndex) {
+  // console.log("Adding New Row for", parentIndex, childIndex);
+}
+
 function Home() {
   const data = createMultiLevelData();
   const [state, dispatch] = useReducer(reducer, { rows: data });
+  const [showAddRowModal, setShowAddRowModal] = useState(false);
+  const [addRowConfig, setAddRowConfig] = useState({});
 
   const summaryRows = useMemo(() => {
     var row = _.map(state.rows, (key) => {
@@ -437,16 +461,28 @@ function Home() {
   ];
 
   function onRowDelete(e, { rowIdx }) {
-    alert(`Will delete row at index ${rowIdx}`);
+    // alert(`Will delete row at index ${rowIdx}`);
+    dispatch({ type: "deleteRow", index: rowIdx });
   }
 
   function onRowInsertParent(e, { rowIdx }) {
-    alert(`Will create a parent row at index ${rowIdx}`);
+    // console.log("INSERT PARENT", rowIdx);
+    setAddRowConfig({ parentIndex: rowIdx, defaultRows: defaultRows });
+    setShowAddRowModal(true);
   }
 
   function onRowInsertChild(e, { rowIdx }) {
     alert(`Will create a child row at index ${rowIdx}`);
   }
+
+  const handleAddRow = (parentIndex, childIndex, data) => {
+    dispatch({ type: "addParentRow", data, parentIndex });
+  };
+
+  const closeAddRowModal = () => {
+    setAddRowConfig({});
+    setShowAddRowModal(false);
+  };
 
   return (
     <>
@@ -464,6 +500,12 @@ function Home() {
         <MenuItem onClick={onRowInsertParent}>Insert Parent</MenuItem>
         <MenuItem onClick={onRowInsertChild}>Insert Child</MenuItem>
       </ContextMenu>
+      <AddRowModal
+        isOpen={showAddRowModal}
+        toggle={closeAddRowModal}
+        data={addRowConfig}
+        onAddRow={handleAddRow}
+      />
     </>
   );
 }

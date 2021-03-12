@@ -268,7 +268,7 @@ function Home() {
             width: 150,
             formatter: (props) => {
                 const value = props.row['2019'];
-                return <div class="row-pad" style={{ textAlign: 'right', backgroundColor:'#fdeeee'}}>{currencyFormatter.format(value)}</div>
+                return <div class="row-pad" style={{ textAlign: 'right', backgroundColor:'#e9e9e9'}}>{currencyFormatter.format(value)}</div>
             },
             summaryFormatter: ({ row }) => totalView(row, '2019Count')
         },
@@ -278,7 +278,7 @@ function Home() {
             width: 150,
             formatter: (props) => {
                 const value = props.row['2020'];
-                return <div class="row-pad" style={{ textAlign: 'right', backgroundColor: '#fdeeee' }}>{currencyFormatter.format(value)}</div>
+                return <div class="row-pad" style={{ textAlign: 'right', backgroundColor: '#e9e9e9' }}>{currencyFormatter.format(value)}</div>
             },
             summaryFormatter: ({ row }) => totalView(row, '2020Count')
         },

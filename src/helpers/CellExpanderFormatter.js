@@ -1,4 +1,5 @@
 import { useRef } from 'react';
+import { HiOutlineChevronRight, HiOutlineChevronDown } from 'react-icons/hi'
 
 export function CellExpanderFormatter({ isCellSelected, expanded, onCellExpand }) {
     const iconRef = useRef(null);
@@ -26,7 +27,7 @@ export function CellExpanderFormatter({ isCellSelected, expanded, onCellExpand }
                     ref={iconRef}
                     tabIndex={-1}
                 >
-                    {expanded ? '\u25BC' : '\u25B6'}
+                    {expanded ? <HiOutlineChevronDown /> : <HiOutlineChevronRight />}
                 </span>
             </span>
         </div>

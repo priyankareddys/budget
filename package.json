@@ -15,6 +15,7 @@
     "react-data-grid": "^7.0.0-canary.37",
     "react-data-grid-addons": "^7.0.0-alpha.24",
     "react-dom": "^17.0.1",
+    "react-icons": "^4.2.0",
     "react-scripts": "4.0.3",
     "react-select": "^4.2.1",
     "web-vitals": "^1.0.1"

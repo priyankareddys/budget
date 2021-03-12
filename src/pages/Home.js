@@ -191,7 +191,7 @@ function currencyView(props, key) {
 }
 
 function totalView(row, key) {
-    return <strong><div style={{ textAlign: 'right' }}>{currencyFormatter.format(row[key])}</div></strong>;
+    return <strong><div class="row-pad" style={{ textAlign: 'right' }}>{currencyFormatter.format(row[key])}</div></strong>;
 }
 
 function RowRenderer(props) {

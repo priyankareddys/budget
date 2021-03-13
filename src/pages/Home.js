@@ -24,16 +24,11 @@ function createData(count, level) {
     rows.push({
       id: faker.random.number(),
       title: faker.finance.accountName(),
-      2019: faker.random.float(),
       2020: faker.random.float(),
       2021: faker.random.float(),
       2022: faker.random.float(),
       2023: faker.random.float(),
       2024: faker.random.float(),
-      2025: faker.random.float(),
-      2026: faker.random.float(),
-      2027: faker.random.float(),
-      2028: faker.random.float(),
       childLevel: level,
       isExpanded: false,
     });
@@ -42,7 +37,7 @@ function createData(count, level) {
 }
 
 function createMultiLevelData() {
-  const l1 = createData(50, 0);
+  const l1 = createData(5, 0);
   _.each(l1, (item0) => {
     const l2 = createData(2, 1);
     // _.each(l2, item1 => {
@@ -58,86 +53,56 @@ const defaultRows = [
   {
     id: 0,
     title: "Net Sales",
-    2019: faker.random.float(),
     2020: faker.random.float(),
     2021: faker.random.float(),
     2022: faker.random.float(),
     2023: faker.random.float(),
     2024: faker.random.float(),
-    2025: faker.random.float(),
-    2026: faker.random.float(),
-    2027: faker.random.float(),
-    2028: faker.random.float(),
   },
   {
     id: 5,
     title: "Revenue",
-    2019: faker.random.float(),
     2020: faker.random.float(),
     2021: faker.random.float(),
     2022: faker.random.float(),
     2023: faker.random.float(),
     2024: faker.random.float(),
-    2025: faker.random.float(),
-    2026: faker.random.float(),
-    2027: faker.random.float(),
-    2028: faker.random.float(),
   },
   {
     id: 6,
     title: "Funds",
-    2019: faker.random.float(),
     2020: faker.random.float(),
     2021: faker.random.float(),
     2022: faker.random.float(),
     2023: faker.random.float(),
     2024: faker.random.float(),
-    2025: faker.random.float(),
-    2026: faker.random.float(),
-    2027: faker.random.float(),
-    2028: faker.random.float(),
   },
   {
     id: 7,
     title: "Charity",
-    2019: faker.random.float(),
     2020: faker.random.float(),
     2021: faker.random.float(),
     2022: faker.random.float(),
     2023: faker.random.float(),
     2024: faker.random.float(),
-    2025: faker.random.float(),
-    2026: faker.random.float(),
-    2027: faker.random.float(),
-    2028: faker.random.float(),
   },
   {
     id: 8,
     title: "Charity",
-    2019: faker.random.float(),
     2020: faker.random.float(),
     2021: faker.random.float(),
     2022: faker.random.float(),
     2023: faker.random.float(),
     2024: faker.random.float(),
-    2025: faker.random.float(),
-    2026: faker.random.float(),
-    2027: faker.random.float(),
-    2028: faker.random.float(),
   },
   {
     id: 9,
     title: "Charity",
-    2019: faker.random.float(),
     2020: faker.random.float(),
     2021: faker.random.float(),
     2022: faker.random.float(),
     2023: faker.random.float(),
     2024: faker.random.float(),
-    2025: faker.random.float(),
-    2026: faker.random.float(),
-    2027: faker.random.float(),
-    2028: faker.random.float(),
   },
 ];
 
@@ -247,24 +212,21 @@ function Home() {
   const [addRowConfig, setAddRowConfig] = useState({});
 
   const summaryRows = useMemo(() => {
-    var row = _.map(state.rows, (key) => {
-      return {
-        "2019Count": _.sumBy(state.rows, "2019"),
-        "2020Count": _.sumBy(state.rows, "2020"),
-        "2021Count": _.sumBy(state.rows, "2021"),
-        "2022Count": _.sumBy(state.rows, "2022"),
-        "2023Count": _.sumBy(state.rows, "2023"),
-        "2024Count": _.sumBy(state.rows, "2024"),
-        "2025Count": _.sumBy(state.rows, "2025"),
-        "2026Count": _.sumBy(state.rows, "2026"),
-        "2027Count": _.sumBy(state.rows, "2027"),
-        "2028Count": _.sumBy(state.rows, "2028"),
-      };
-    });
+    // var row = _.map(state.rows, (key) => {
+    //   return {
+    //     "2020Count": _.sumBy(state.rows, "2020"),
+    //     "2021Count": _.sumBy(state.rows, "2021"),
+    //     "2022Count": _.sumBy(state.rows, "2022"),
+    //     "2023Count": _.sumBy(state.rows, "2023"),
+    //     "2024Count": _.sumBy(state.rows, "2024"),
+    //   };
+    // });
 
-    const summaryRow = row[0];
-    return [summaryRow];
-  }, [state.rows]);
+    // const summaryRow = row[0];
+    // return [summaryRow];
+  }, 
+  
+  [state.rows]);
 
   const columns = [
     {
@@ -305,23 +267,6 @@ function Home() {
       ),
     },
     {
-      key: "2019",
-      name: "FY 2019",
-      width: 150,
-      formatter: (props) => {
-        const value = props.row["2019"];
-        return (
-          <div
-            class="row-pad"
-            style={{ textAlign: "right", backgroundColor: "#e9e9e9" }}
-          >
-            {currencyFormatter.format(value)}
-          </div>
-        );
-      },
-      summaryFormatter: ({ row }) => totalView(row, "2019Count"),
-    },
-    {
       key: "2020",
       name: "FY 2020",
       width: 150,
@@ -336,7 +281,7 @@ function Home() {
           </div>
         );
       },
-      summaryFormatter: ({ row }) => totalView(row, "2020Count"),
+      // summaryFormatter: ({ row }) => totalView(row, "2020Count"),
     },
     {
       key: "2021",
@@ -351,7 +296,7 @@ function Home() {
           </div>
         );
       },
-      summaryFormatter: ({ row }) => totalView(row, "2021Count"),
+      // summaryFormatter: ({ row }) => totalView(row, "2021Count"),
     },
     {
       key: "2022",
@@ -366,7 +311,7 @@ function Home() {
           </div>
         );
       },
-      summaryFormatter: ({ row }) => totalView(row, "2022Count"),
+      // summaryFormatter: ({ row }) => totalView(row, "2022Count"),
     },
     {
       key: "2023",
@@ -381,7 +326,7 @@ function Home() {
           </div>
         );
       },
-      summaryFormatter: ({ row }) => totalView(row, "2023Count"),
+      // summaryFormatter: ({ row }) => totalView(row, "2023Count"),
     },
     {
       key: "2024",
@@ -396,67 +341,7 @@ function Home() {
           </div>
         );
       },
-      summaryFormatter: ({ row }) => totalView(row, "2024Count"),
-    },
-    {
-      key: "2025",
-      name: "FY 2025",
-      width: 150,
-      editor: TextEditor,
-      formatter: (props) => {
-        const value = props.row["2025"];
-        return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
-          </div>
-        );
-      },
-      summaryFormatter: ({ row }) => totalView(row, "2025Count"),
-    },
-    {
-      key: "2026",
-      name: "FY 2026",
-      width: 150,
-      editor: TextEditor,
-      formatter: (props) => {
-        const value = props.row["2026"];
-        return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
-          </div>
-        );
-      },
-      summaryFormatter: ({ row }) => totalView(row, "2026Count"),
-    },
-    {
-      key: "2027",
-      name: "FY 2027",
-      width: 150,
-      editor: TextEditor,
-      formatter: (props) => {
-        const value = props.row["2027"];
-        return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
-          </div>
-        );
-      },
-      summaryFormatter: ({ row }) => totalView(row, "2027Count"),
-    },
-    {
-      key: "2028",
-      name: "FY 2028",
-      width: 150,
-      editor: TextEditor,
-      formatter: (props) => {
-        const value = props.row["2028"];
-        return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
-          </div>
-        );
-      },
-      summaryFormatter: ({ row }) => totalView(row, "2028Count"),
+      // summaryFormatter: ({ row }) => totalView(row, "2024Count"),
     },
   ];
 

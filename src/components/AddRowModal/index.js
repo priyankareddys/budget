@@ -16,16 +16,11 @@ import _ from "lodash";
 
 class AddRowModal extends Component {
   dataFields = [
-    { title: "2019", key: "2019", disabled: true },
     { title: "2020", key: "2020", disabled: true },
     { title: "2021", key: "2021", disabled: false },
     { title: "2022", key: "2022", disabled: false },
     { title: "2023", key: "2023", disabled: false },
     { title: "2024", key: "2024", disabled: false },
-    { title: "2025", key: "2025", disabled: false },
-    { title: "2026", key: "2026", disabled: false },
-    { title: "2027", key: "2027", disabled: false },
-    { title: "2028", key: "2028", disabled: false },
   ];
   constructor(props) {
     super(props);

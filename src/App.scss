@@ -122,4 +122,10 @@
   padding: .5rem 2rem;
 }
 
-
+.modal-header, .modal-body, .modal-footer {
+  display: flex;
+  justify-content: center
+}
+.trash {
+  cursor: pointer;
+}

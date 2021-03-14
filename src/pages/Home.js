@@ -2,10 +2,11 @@ import React, { useReducer, useMemo, useState } from "react";
 import DataGrid, { TextEditor, Row as GridRow } from "react-data-grid";
 import _ from "lodash";
 import faker from "faker";
-import AddRowModal from "../components/AddRowModal";
+// import AddRowModal from "../components/AddRowModal";
 import ConfirmPopup from "../components/ConfirmPopup";
-
 import { v4 as uuidv4 } from "uuid";
+import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import {
   ContextMenu,
   MenuItem,
@@ -289,8 +290,10 @@ function Home() {
 
               {row.childLevel > 0 && (
                 <span className="ml-2" onClick={() => handleDeleteItem(row)}>
-                  X
-                </span>
+                  <span className="trash">
+                  <FontAwesomeIcon icon={faTrash} />
+                  </span>
+                                  </span>
               )}
             </div>
           </>
@@ -441,7 +444,7 @@ function Home() {
         onAddRow={handleAddRow}
       /> */}
       <ConfirmPopup
-        title="Confirm Delete?"
+        title="Delete"
         isOpen={showDeletePopup}
         toggle={() => setShowDeletePopup(false)}
         message="Are you sure you want to delete this item"

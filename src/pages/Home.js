@@ -286,15 +286,15 @@ function Home() {
               class="row-pad"
               style={{ textAlign: "left", marginLeft: row.childLevel * 26 }}
             >
-              {row.title}
 
               {row.childLevel > 0 && (
                 <span className="ml-2" onClick={() => handleDeleteItem(row)}>
-                  <span className="trash">
+                  <span className="trash text-danger float-left">
                   <FontAwesomeIcon icon={faTrash} />
                   </span>
                                   </span>
               )}
+                            {row.title}
             </div>
           </>
         );
@@ -400,6 +400,7 @@ function Home() {
   function onDeleteConfirm(row) {
     console.log("will delete confirm", row);
     dispatch({ id: row.id, type: "deleteSubRow" });
+    setShowDeletePopup(false);
   }
 
   // function onRowInsertParent(e, { rowIdx }) {

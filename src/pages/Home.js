@@ -1,4 +1,4 @@
-import React, { useReducer, useMemo, useState } from "react";
+import React, { useReducer, useState } from "react";
 import DataGrid, { TextEditor, Row as GridRow } from "react-data-grid";
 import _ from "lodash";
 import faker from "faker";
@@ -44,10 +44,6 @@ function createMultiLevelData() {
   const l1 = createData(5, 0);
   _.each(l1, (item0) => {
     const l2 = createData(2, 1, { parentId: item0.id });
-    // _.each(l2, item1 => {
-    //     const l3 = createData(2, 2)
-    //     item1.children = l3
-    // })
     item0.children = l2;
   });
   return l1;
@@ -61,7 +57,7 @@ function calculateChildrenTotal(item) {
   return item;
 }
 
-function calculateIndividualTotals(data) {
+function calculateDataTotals(data) {
   _.each(data, (item0) => {
     item0 = calculateChildrenTotal(item0);
   });
@@ -252,7 +248,7 @@ function totalView(row, key) {
 }
 
 function Home() {
-  const data = calculateIndividualTotals(createMultiLevelData());
+  const data = calculateDataTotals(createMultiLevelData());
   const [state, dispatch] = useReducer(reducer, { rows: data });
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [deleteRowValue, setDeleteRowValue] = useState({});
@@ -272,13 +268,10 @@ function Home() {
       { ...value },
       _.omit({ ...selectedValue }, "id")
     );
-    console.log("updatedRow", updatedRow);
-    console.log("title is changed");
     dispatch({ type: "updateRow", data: updatedRow });
   }
 
   function onRowChange(value) {
-    console.log("row is changed", value);
     dispatch({ type: "updateRow", data: value });
   }
 
@@ -305,10 +298,16 @@ function Home() {
             )}
             <div
               class="row-pad"
-              style={{ textAlign: "left", marginLeft: row.childLevel * 26 }}
+              style={{
+                textAlign: "left",
+                marginLeft: row.childLevel * 26,
+              }}
             >
               {row.childLevel > 0 && !row.emptyRow && (
-                <span className="ml-2" onClick={() => handleDeleteItem(row)}>
+                <span
+                  className="ml-2"
+                  onClick={(event) => handleDeleteItem(event, row)}
+                >
                   <span className="trash text-danger float-left">
                     <FontAwesomeIcon icon={faTrash} />
                   </span>
@@ -317,8 +316,7 @@ function Home() {
               {row.emptyRow ? (
                 <span
                   onClick={() => addSubRow(row.parentId)}
-                  className="addItem text-dark text-center"
-                  style={{ marginLeft: row.childLevel * 26 }}
+                  className="addItem"
                 >
                   <FontAwesomeIcon icon={faPlusCircle} /> Add Item
                 </span>
@@ -334,7 +332,8 @@ function Home() {
         editOnClick: true,
       },
       editor: (p) =>
-        p.row.childLevel > 0 && (
+        p.row.childLevel > 0 &&
+        !p.row.emptyRow && (
           <SelectEditor
             value={p.row.title}
             onChange={(value) => onRowTitleChange({ ...p.row, title: value })}
@@ -447,39 +446,16 @@ function Home() {
     },
   ];
 
-  function handleDeleteItem(row) {
+  function handleDeleteItem(event, row) {
+    event.stopPropagation();
     setShowDeletePopup(true);
     setDeleteRowValue(row);
   }
 
-  // function onRowDelete(e, { rowIdx }) {
-  //   // alert(`Will delete row at index ${rowIdx}`);
-  //   dispatch({ type: "deleteRow", index: rowIdx });
-  // }
   function onDeleteConfirm(row) {
-    console.log("will delete confirm", row);
     dispatch({ id: row.id, type: "deleteSubRow" });
     setShowDeletePopup(false);
   }
-
-  // function onRowInsertParent(e, { rowIdx }) {
-  //   // console.log("INSERT PARENT", rowIdx);
-  //   setAddRowConfig({ parentIndex: rowIdx, defaultRows: defaultRows });
-  //   setShowAddRowModal(true);
-  // }
-
-  function onRowInsertChild(e, { rowIdx }) {
-    alert(`Will create a child row at index ${rowIdx}`);
-  }
-
-  // const handleAddRow = (parentIndex, childIndex, data) => {
-  //   dispatch({ type: "addParentRow", data, parentIndex });
-  // };
-
-  // const closeAddRowModal = () => {
-  //   setAddRowConfig({});
-  //   setShowAddRowModal(false);
-  // };
 
   return (
     <>
@@ -488,7 +464,6 @@ function Home() {
         rows={state.rows}
         columns={columns}
         style={{ height: "100vh" }}
-        // rowRenderer={RowRenderer}
         className="fill-grid"
       />
       <ConfirmPopup

@@ -2,11 +2,10 @@ import React, { useReducer, useMemo, useState } from "react";
 import DataGrid, { TextEditor, Row as GridRow } from "react-data-grid";
 import _ from "lodash";
 import faker from "faker";
-// import AddRowModal from "../components/AddRowModal";
 import ConfirmPopup from "../components/ConfirmPopup";
 import { v4 as uuidv4 } from "uuid";
-import {FontAwesomeIcon} from "@fortawesome/react-fontawesome";
-import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPlusCircle, faTrash } from "@fortawesome/free-solid-svg-icons";
 import {
   ContextMenu,
   MenuItem,
@@ -15,7 +14,7 @@ import {
 } from "react-contextmenu";
 import { CellExpanderFormatter } from "../helpers/CellExpanderFormatter";
 import { SelectEditor } from "../helpers/SelectEditor";
-
+import "./Home.scss";
 const currencyFormatter = new Intl.NumberFormat(navigator.language, {
   style: "currency",
   currency: "usd",
@@ -129,8 +128,17 @@ function toggleSubRow(state, id) {
   const { rows } = state;
   const rowIndex = rows.findIndex((r) => r.id === id);
   const row = rows[rowIndex];
-  const { children } = row;
-  if (!children) return { rows: rows };
+  const children = [...row.children];
+  if (!children) {
+    children = [];
+  }
+
+  children.push({
+    emptyRow: true,
+    childLevel: 1,
+    parentId: row.id,
+    id: `${row.id}-addItem`,
+  });
 
   const newRows = [...rows];
   newRows[rowIndex] = { ...row, isExpanded: !row.isExpanded };
@@ -165,11 +173,10 @@ function deleteSubRow(state, id) {
 }
 
 function insertSubRow(state, data) {
-  const { rows } = state;
+  const rows = [...state.rows];
   if (!data.parentId) {
     return;
   }
-  const parentRowIndex = rows.findIndex((r) => r.id === data.parentId);
   const newRow = _.extend(
     {
       id: uuidv4(),
@@ -177,24 +184,17 @@ function insertSubRow(state, data) {
     },
     { ...data }
   );
-  //find parent item
-  //get parent item index
-  //add new item as children
-  //add item in expanded rows
+
+  const parentRowIndex = rows.findIndex((r) => r.id === data.parentId);
+  const parentRow = { ...rows[parentRowIndex] };
+  let parentChildren = [...parentRow.children];
+  parentChildren.push({ ...newRow });
+  parentRow.children = parentChildren;
+  const childrenLength = parentChildren.length;
+  rows[parentRowIndex] = parentRow;
+  rows.splice(parentRowIndex + childrenLength, 0, newRow);
+  return { rows };
 }
-
-// function addParentRow(state, index, data) {
-//   let { rows } = state;
-//   rows.splice(index, 0, data);
-//   return { rows: rows };
-// }
-
-// function deleteRow(state, index) {
-//   let { rows } = state;
-//   // console.log(index);
-//   rows.splice(index, 1);
-//   return { rows: rows };
-// }
 
 function reducer(state, action) {
   switch (action.type) {
@@ -212,7 +212,9 @@ function reducer(state, action) {
 function currencyView(props, key) {
   const value = props.row[key];
   return (
-    <div style={{ textAlign: "right" }}>{currencyFormatter.format(value)}</div>
+    <div style={{ textAlign: "right" }}>
+      value ? {currencyFormatter.format(value)} : ""
+    </div>
   );
 }
 
@@ -226,42 +228,31 @@ function totalView(row, key) {
   );
 }
 
-function RowRenderer(props) {
-  return (
-    <ContextMenuTrigger
-      id="grid-context-menu"
-      collect={() => ({ rowIdx: props.rowIdx })}
-    >
-      <GridRow {...props} />
-    </ContextMenuTrigger>
-  );
-}
-
-function showAddRowModal(parentIndex, childIndex) {
-  // console.log("Adding New Row for", parentIndex, childIndex);
-}
+// function RowRenderer(props) {
+//   return (
+//     // <ContextMenuTrigger
+//     //   id="grid-context-menu"
+//     //   collect={() => ({ rowIdx: props.rowIdx })}
+//     // >
+//     //   <GridRow {...props} />
+//     // </ContextMenuTrigger>
+//   );
+// }
 
 function Home() {
   const data = calculateIndividualTotals(createMultiLevelData());
   const [state, dispatch] = useReducer(reducer, { rows: data });
-  const [showAddRowModal, setShowAddRowModal] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [deleteRowValue, setDeleteRowValue] = useState({});
-  const [addRowConfig, setAddRowConfig] = useState({});
 
-  const summaryRows = useMemo(() => {
-    // var row = _.map(state.rows, (key) => {
-    //   return {
-    //     "2020Count": _.sumBy(state.rows, "2020"),
-    //     "2021Count": _.sumBy(state.rows, "2021"),
-    //     "2022Count": _.sumBy(state.rows, "2022"),
-    //     "2023Count": _.sumBy(state.rows, "2023"),
-    //     "2024Count": _.sumBy(state.rows, "2024"),
-    //   };
-    // });
-    // const summaryRow = row[0];
-    // return [summaryRow];
-  }, [state.rows]);
+  function addSubRow(parentId) {
+    const newRow = {
+      title: "",
+      childLevel: 1,
+      parentId: parentId,
+    };
+    dispatch({ type: "insertSubRow", data: newRow });
+  }
 
   const columns = [
     {
@@ -274,31 +265,42 @@ function Home() {
         return (
           <>
             {hasChildren && (
-              <CellExpanderFormatter
-                isCellSelected={isCellSelected}
-                expanded={row.isExpanded === true}
-                onCellExpand={() =>
-                  dispatch({ id: row.id, type: "toggleSubRow" })
-                }
-              />
+              <>
+                <CellExpanderFormatter
+                  isCellSelected={isCellSelected}
+                  expanded={row.isExpanded === true}
+                  onCellExpand={() =>
+                    dispatch({ id: row.id, type: "toggleSubRow" })
+                  }
+                />
+              </>
             )}
             <div
               class="row-pad"
               style={{ textAlign: "left", marginLeft: row.childLevel * 26 }}
             >
-
-              {row.childLevel > 0 && (
+              {row.childLevel > 0 && !row.emptyRow && (
                 <span className="ml-2" onClick={() => handleDeleteItem(row)}>
                   <span className="trash text-danger float-left">
-                  <FontAwesomeIcon icon={faTrash} />
+                    <FontAwesomeIcon icon={faTrash} />
                   </span>
-                                  </span>
+                </span>
               )}
-                            {row.title}
+              {row.title}
+              {row.emptyRow && (
+                <span
+                  onClick={() => addSubRow(row.parentId)}
+                  className="addItem text-dark text-center"
+                  style={{ marginLeft: row.childLevel * 26 }}
+                >
+                  <FontAwesomeIcon icon={faPlusCircle} /> Add Item
+                </span>
+              )}
             </div>
           </>
         );
       },
+      editable: false,
       editor: (p) => (
         <SelectEditor
           value={p.row.title}
@@ -320,7 +322,7 @@ function Home() {
             class="row-pad"
             style={{ textAlign: "right", backgroundColor: "#e9e9e9" }}
           >
-            {currencyFormatter.format(value)}
+            {value ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
@@ -335,7 +337,7 @@ function Home() {
         const value = props.row["2021"];
         return (
           <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
+            {value ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
@@ -350,7 +352,7 @@ function Home() {
         const value = props.row["2022"];
         return (
           <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
+            {value ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
@@ -365,7 +367,7 @@ function Home() {
         const value = props.row["2023"];
         return (
           <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
+            {value ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
@@ -380,7 +382,7 @@ function Home() {
         const value = props.row["2024"];
         return (
           <div class="row-pad" style={{ textAlign: "right" }}>
-            {currencyFormatter.format(value)}
+            {value ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
@@ -429,8 +431,7 @@ function Home() {
         columns={columns}
         rows={state.rows}
         style={{ height: "100vh" }}
-        rowRenderer={RowRenderer}
-        summaryRows={summaryRows}
+        // rowRenderer={RowRenderer}
         className="fill-grid"
       />
       {/* <ContextMenu id="grid-context-menu">

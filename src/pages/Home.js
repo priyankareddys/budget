@@ -3,7 +3,9 @@ import DataGrid, { TextEditor, Row as GridRow } from "react-data-grid";
 import _ from "lodash";
 import faker from "faker";
 import AddRowModal from "../components/AddRowModal";
+import ConfirmPopup from "../components/ConfirmPopup";
 
+import { v4 as uuidv4 } from "uuid";
 import {
   ContextMenu,
   MenuItem,
@@ -18,20 +20,26 @@ const currencyFormatter = new Intl.NumberFormat(navigator.language, {
   currency: "usd",
 });
 
-function createData(count, level) {
+function createData(count, level, data = {}) {
   const rows = [];
   for (let i = 0; i < count; i++) {
-    rows.push({
-      id: faker.random.number(),
-      title: faker.finance.accountName(),
-      2020: faker.random.float(),
-      2021: faker.random.float(),
-      2022: faker.random.float(),
-      2023: faker.random.float(),
-      2024: faker.random.float(),
-      childLevel: level,
-      isExpanded: false,
-    });
+    let rowData = _.extend(
+      {
+        ...data,
+      },
+      {
+        id: uuidv4(),
+        title: faker.finance.accountName(),
+        2020: faker.random.float(),
+        2021: faker.random.float(),
+        2022: faker.random.float(),
+        2023: faker.random.float(),
+        2024: faker.random.float(),
+        childLevel: level,
+        isExpanded: false,
+      }
+    );
+    rows.push(rowData);
   }
   return rows;
 }
@@ -39,7 +47,7 @@ function createData(count, level) {
 function createMultiLevelData() {
   const l1 = createData(5, 0);
   _.each(l1, (item0) => {
-    const l2 = createData(2, 1);
+    const l2 = createData(2, 1, { parentId: item0.id });
     // _.each(l2, item1 => {
     //     const l3 = createData(2, 2)
     //     item1.children = l3
@@ -47,6 +55,16 @@ function createMultiLevelData() {
     item0.children = l2;
   });
   return l1;
+}
+
+function calculateIndividualTotals(data) {
+  const fieldsForSum = ["2020", "2021", "2022", "2023", "2024", "2025"];
+  _.each(data, (item0) => {
+    _.forEach(fieldsForSum, (field) => {
+      item0[field] = _.sumBy(item0.children, field);
+    });
+  });
+  return data;
 }
 
 const defaultRows = [
@@ -145,18 +163,37 @@ function deleteSubRow(state, id) {
   return { rows: newRows };
 }
 
-function addParentRow(state, index, data) {
-  let { rows } = state;
-  rows.splice(index, 0, data);
-  return { rows: rows };
+function insertSubRow(state, data) {
+  const { rows } = state;
+  if (!data.parentId) {
+    return;
+  }
+  const parentRowIndex = rows.findIndex((r) => r.id === data.parentId);
+  const newRow = _.extend(
+    {
+      id: uuidv4(),
+      childLevel: 1,
+    },
+    { ...data }
+  );
+  //find parent item
+  //get parent item index
+  //add new item as children
+  //add item in expanded rows
 }
 
-function deleteRow(state, index) {
-  let { rows } = state;
-  // console.log(index);
-  rows.splice(index, 1);
-  return { rows: rows };
-}
+// function addParentRow(state, index, data) {
+//   let { rows } = state;
+//   rows.splice(index, 0, data);
+//   return { rows: rows };
+// }
+
+// function deleteRow(state, index) {
+//   let { rows } = state;
+//   // console.log(index);
+//   rows.splice(index, 1);
+//   return { rows: rows };
+// }
 
 function reducer(state, action) {
   switch (action.type) {
@@ -164,10 +201,8 @@ function reducer(state, action) {
       return toggleSubRow(state, action.id);
     case "deleteSubRow":
       return deleteSubRow(state, action.id);
-    case "addParentRow":
-      return addParentRow(state, action.parentIndex, action.data);
-    case "deleteRow":
-      return deleteRow(state, action.index);
+    case "insertSubRow":
+      return insertSubRow(state, action.data);
     default:
       return state;
   }
@@ -206,9 +241,11 @@ function showAddRowModal(parentIndex, childIndex) {
 }
 
 function Home() {
-  const data = createMultiLevelData();
+  const data = calculateIndividualTotals(createMultiLevelData());
   const [state, dispatch] = useReducer(reducer, { rows: data });
   const [showAddRowModal, setShowAddRowModal] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
+  const [deleteRowValue, setDeleteRowValue] = useState({});
   const [addRowConfig, setAddRowConfig] = useState({});
 
   const summaryRows = useMemo(() => {
@@ -221,12 +258,9 @@ function Home() {
     //     "2024Count": _.sumBy(state.rows, "2024"),
     //   };
     // });
-
     // const summaryRow = row[0];
     // return [summaryRow];
-  }, 
-  
-  [state.rows]);
+  }, [state.rows]);
 
   const columns = [
     {
@@ -252,6 +286,12 @@ function Home() {
               style={{ textAlign: "left", marginLeft: row.childLevel * 26 }}
             >
               {row.title}
+
+              {row.childLevel > 0 && (
+                <span className="ml-2" onClick={() => handleDeleteItem(row)}>
+                  X
+                </span>
+              )}
             </div>
           </>
         );
@@ -345,29 +385,38 @@ function Home() {
     },
   ];
 
-  function onRowDelete(e, { rowIdx }) {
-    // alert(`Will delete row at index ${rowIdx}`);
-    dispatch({ type: "deleteRow", index: rowIdx });
+  function handleDeleteItem(row) {
+    setShowDeletePopup(true);
+    setDeleteRowValue(row);
   }
 
-  function onRowInsertParent(e, { rowIdx }) {
-    // console.log("INSERT PARENT", rowIdx);
-    setAddRowConfig({ parentIndex: rowIdx, defaultRows: defaultRows });
-    setShowAddRowModal(true);
+  // function onRowDelete(e, { rowIdx }) {
+  //   // alert(`Will delete row at index ${rowIdx}`);
+  //   dispatch({ type: "deleteRow", index: rowIdx });
+  // }
+  function onDeleteConfirm(row) {
+    console.log("will delete confirm", row);
+    dispatch({ id: row.id, type: "deleteSubRow" });
   }
+
+  // function onRowInsertParent(e, { rowIdx }) {
+  //   // console.log("INSERT PARENT", rowIdx);
+  //   setAddRowConfig({ parentIndex: rowIdx, defaultRows: defaultRows });
+  //   setShowAddRowModal(true);
+  // }
 
   function onRowInsertChild(e, { rowIdx }) {
     alert(`Will create a child row at index ${rowIdx}`);
   }
 
-  const handleAddRow = (parentIndex, childIndex, data) => {
-    dispatch({ type: "addParentRow", data, parentIndex });
-  };
+  // const handleAddRow = (parentIndex, childIndex, data) => {
+  //   dispatch({ type: "addParentRow", data, parentIndex });
+  // };
 
-  const closeAddRowModal = () => {
-    setAddRowConfig({});
-    setShowAddRowModal(false);
-  };
+  // const closeAddRowModal = () => {
+  //   setAddRowConfig({});
+  //   setShowAddRowModal(false);
+  // };
 
   return (
     <>
@@ -380,16 +429,27 @@ function Home() {
         summaryRows={summaryRows}
         className="fill-grid"
       />
-      <ContextMenu id="grid-context-menu">
+      {/* <ContextMenu id="grid-context-menu">
         <MenuItem onClick={onRowDelete}>Delete Row</MenuItem>
         <MenuItem onClick={onRowInsertParent}>Insert Parent</MenuItem>
         <MenuItem onClick={onRowInsertChild}>Insert Child</MenuItem>
-      </ContextMenu>
-      <AddRowModal
+      </ContextMenu> */}
+      {/* <AddRowModal
         isOpen={showAddRowModal}
         toggle={closeAddRowModal}
         data={addRowConfig}
         onAddRow={handleAddRow}
+      /> */}
+      <ConfirmPopup
+        title="Confirm Delete?"
+        isOpen={showDeletePopup}
+        toggle={() => setShowDeletePopup(false)}
+        message="Are you sure you want to delete this item"
+        closeButtonText="CANCEL"
+        onClose={() => setShowDeletePopup(false)}
+        confirmButtonText="CONFIRM"
+        confirmButtonColor="danger"
+        onConfirm={() => onDeleteConfirm(deleteRowValue)}
       />
     </>
   );

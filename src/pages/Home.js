@@ -6,15 +6,11 @@ import ConfirmPopup from "../components/ConfirmPopup";
 import { v4 as uuidv4 } from "uuid";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlusCircle, faTrash } from "@fortawesome/free-solid-svg-icons";
-import {
-  ContextMenu,
-  MenuItem,
-  SubMenu,
-  ContextMenuTrigger,
-} from "react-contextmenu";
 import { CellExpanderFormatter } from "../helpers/CellExpanderFormatter";
 import { SelectEditor } from "../helpers/SelectEditor";
+import NumberEditor from "../helpers/numberEditor";
 import "./Home.scss";
+
 const currencyFormatter = new Intl.NumberFormat(navigator.language, {
   style: "currency",
   currency: "usd",
@@ -57,12 +53,17 @@ function createMultiLevelData() {
   return l1;
 }
 
-function calculateIndividualTotals(data) {
+function calculateChildrenTotal(item) {
   const fieldsForSum = ["2020", "2021", "2022", "2023", "2024", "2025"];
+  _.each(fieldsForSum, (field) => {
+    item[field] = _.sumBy(item.children, field);
+  });
+  return item;
+}
+
+function calculateIndividualTotals(data) {
   _.each(data, (item0) => {
-    _.forEach(fieldsForSum, (field) => {
-      item0[field] = _.sumBy(item0.children, field);
-    });
+    item0 = calculateChildrenTotal(item0);
   });
   return data;
 }
@@ -196,6 +197,28 @@ function insertSubRow(state, data) {
   return { rows };
 }
 
+function updateRow(state, data) {
+  const rows = [...state.rows];
+  if (!data.parentId) {
+    return { rows };
+  }
+
+  const parentRowIndex = rows.findIndex((r) => r.id === data.parentId);
+  let parentRow = { ...rows[parentRowIndex] };
+  let parentChildren = [...parentRow.children];
+
+  const childRowIndex = parentChildren.findIndex((c) => c.id === data.id);
+  parentChildren[childRowIndex] = data;
+  parentRow.children = parentChildren;
+  parentRow = calculateChildrenTotal(parentRow);
+  rows[parentRowIndex] = parentRow;
+
+  const viewRowIndex = rows.findIndex((r) => r.id === data.id);
+  const viewRow = { ...rows[viewRowIndex] };
+  rows[viewRowIndex] = data;
+  return { rows };
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case "toggleSubRow":
@@ -204,6 +227,8 @@ function reducer(state, action) {
       return deleteSubRow(state, action.id);
     case "insertSubRow":
       return insertSubRow(state, action.data);
+    case "updateRow":
+      return updateRow(state, action.data);
     default:
       return state;
   }
@@ -212,9 +237,7 @@ function reducer(state, action) {
 function currencyView(props, key) {
   const value = props.row[key];
   return (
-    <div style={{ textAlign: "right" }}>
-      value ? {currencyFormatter.format(value)} : ""
-    </div>
+    <div style={{ textAlign: "right" }}>{currencyFormatter.format(value)}</div>
   );
 }
 
@@ -227,17 +250,6 @@ function totalView(row, key) {
     </strong>
   );
 }
-
-// function RowRenderer(props) {
-//   return (
-//     // <ContextMenuTrigger
-//     //   id="grid-context-menu"
-//     //   collect={() => ({ rowIdx: props.rowIdx })}
-//     // >
-//     //   <GridRow {...props} />
-//     // </ContextMenuTrigger>
-//   );
-// }
 
 function Home() {
   const data = calculateIndividualTotals(createMultiLevelData());
@@ -254,13 +266,29 @@ function Home() {
     dispatch({ type: "insertSubRow", data: newRow });
   }
 
+  function onRowTitleChange(value) {
+    const selectedValue = defaultRows.find((r) => r.id === value.title);
+    const updatedRow = _.extend(
+      { ...value },
+      _.omit({ ...selectedValue }, "id")
+    );
+    console.log("updatedRow", updatedRow);
+    console.log("title is changed");
+    dispatch({ type: "updateRow", data: updatedRow });
+  }
+
+  function onRowChange(value) {
+    console.log("row is changed", value);
+    dispatch({ type: "updateRow", data: value });
+  }
+
   const columns = [
     {
       key: "title",
       name: "Budget",
       width: 240,
       frozen: true,
-      formatter({ row, isCellSelected }) {
+      formatter({ row, isCellSelected, ...rest }) {
         const hasChildren = row.children && row.children.length > 0;
         return (
           <>
@@ -286,8 +314,7 @@ function Home() {
                   </span>
                 </span>
               )}
-              {row.title}
-              {row.emptyRow && (
+              {row.emptyRow ? (
                 <span
                   onClick={() => addSubRow(row.parentId)}
                   className="addItem text-dark text-center"
@@ -295,21 +322,27 @@ function Home() {
                 >
                   <FontAwesomeIcon icon={faPlusCircle} /> Add Item
                 </span>
+              ) : (
+                <>{row.title ? row.title : <span>Select ...</span>}</>
               )}
             </div>
           </>
         );
       },
-      editable: false,
-      editor: (p) => (
-        <SelectEditor
-          value={p.row.title}
-          onChange={(value) => p.onRowChange({ ...p.row, title: value }, true)}
-          options={defaultRows.map((c) => ({ value: c.id, label: c.title }))}
-          rowHeight={p.rowHeight}
-          menuPortalTarget={p.editorPortalTarget}
-        />
-      ),
+      editable: true,
+      editorOptions: {
+        editOnClick: true,
+      },
+      editor: (p) =>
+        p.row.childLevel > 0 && (
+          <SelectEditor
+            value={p.row.title}
+            onChange={(value) => onRowTitleChange({ ...p.row, title: value })}
+            options={defaultRows.map((c) => ({ value: c.id, label: c.title }))}
+            rowHeight={p.rowHeight}
+            menuPortalTarget={p.editorPortalTarget}
+          />
+        ),
     },
     {
       key: "2020",
@@ -326,28 +359,37 @@ function Home() {
           </div>
         );
       },
-      // summaryFormatter: ({ row }) => totalView(row, "2020Count"),
     },
     {
       key: "2021",
       name: "FY 2021",
       width: 150,
-      editor: TextEditor,
       formatter: (props) => {
         const value = props.row["2021"];
         return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
+          <div
+            class="row-pad"
+            style={{ textAlign: "right", backgroundColor: "#e9e9e9" }}
+          >
             {value ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
-      // summaryFormatter: ({ row }) => totalView(row, "2021Count"),
     },
     {
       key: "2022",
       name: "FY 2022",
       width: 150,
-      editor: TextEditor,
+      editorOptions: {
+        editOnClick: true,
+      },
+      editor: (p) => (
+        <NumberEditor
+          disabled={p.row["emptyRow"] || p.row["childLevel"] === 0}
+          value={p.row["2022"]}
+          onChange={(value) => onRowChange({ ...p.row, 2022: value })}
+        />
+      ),
       formatter: (props) => {
         const value = props.row["2022"];
         return (
@@ -356,28 +398,34 @@ function Home() {
           </div>
         );
       },
-      // summaryFormatter: ({ row }) => totalView(row, "2022Count"),
     },
     {
       key: "2023",
       name: "FY 2023",
-      editor: TextEditor,
       width: 150,
       formatter: (props) => {
         const value = props.row["2023"];
         return (
           <div class="row-pad" style={{ textAlign: "right" }}>
-            {value ? currencyFormatter.format(value) : ""}
+            {_.isNumber(value) ? currencyFormatter.format(value) : ""}
           </div>
         );
       },
-      // summaryFormatter: ({ row }) => totalView(row, "2023Count"),
+      editorOptions: {
+        editOnClick: true,
+      },
+      editor: (p) => (
+        <NumberEditor
+          disabled={p.row["emptyRow"] || p.row["childLevel"] === 0}
+          value={p.row["2023"]}
+          onChange={(value) => onRowChange({ ...p.row, 2023: value })}
+        />
+      ),
     },
     {
       key: "2024",
       name: "FY 2024",
       width: 150,
-      editor: TextEditor,
       formatter: (props) => {
         const value = props.row["2024"];
         return (
@@ -386,7 +434,16 @@ function Home() {
           </div>
         );
       },
-      // summaryFormatter: ({ row }) => totalView(row, "2024Count"),
+      editorOptions: {
+        editOnClick: true,
+      },
+      editor: (p) => (
+        <NumberEditor
+          disabled={p.row["emptyRow"] || p.row["childLevel"] === 0}
+          value={p.row["2024"]}
+          onChange={(value) => onRowChange({ ...p.row, 2024: value })}
+        />
+      ),
     },
   ];
 
@@ -428,23 +485,12 @@ function Home() {
     <>
       <DataGrid
         rowKeyGetter={(row) => row.id}
-        columns={columns}
         rows={state.rows}
+        columns={columns}
         style={{ height: "100vh" }}
         // rowRenderer={RowRenderer}
         className="fill-grid"
       />
-      {/* <ContextMenu id="grid-context-menu">
-        <MenuItem onClick={onRowDelete}>Delete Row</MenuItem>
-        <MenuItem onClick={onRowInsertParent}>Insert Parent</MenuItem>
-        <MenuItem onClick={onRowInsertChild}>Insert Child</MenuItem>
-      </ContextMenu> */}
-      {/* <AddRowModal
-        isOpen={showAddRowModal}
-        toggle={closeAddRowModal}
-        data={addRowConfig}
-        onAddRow={handleAddRow}
-      /> */}
       <ConfirmPopup
         title="Delete"
         isOpen={showDeletePopup}

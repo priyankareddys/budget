@@ -9,60 +9,20 @@ import { faPlusCircle, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { CellExpanderFormatter } from "../helpers/CellExpanderFormatter";
 import { SelectEditor } from "../helpers/SelectEditor";
 import NumberEditor from "../helpers/numberEditor";
+import { Container } from "reactstrap";
+import DepartmentSelector from "../components/DepartmentSelector";
+import {
+  generateDepartmentData,
+  calculateDataTotals,
+  calculateChildrenTotal,
+  getDepartments,
+} from "../helpers/dataHelper";
 import "./Home.scss";
 
 const currencyFormatter = new Intl.NumberFormat(navigator.language, {
   style: "currency",
   currency: "usd",
 });
-
-function createData(count, level, data = {}) {
-  const rows = [];
-  for (let i = 0; i < count; i++) {
-    let rowData = _.extend(
-      {
-        ...data,
-      },
-      {
-        id: uuidv4(),
-        title: faker.finance.accountName(),
-        2020: faker.random.float(),
-        2021: faker.random.float(),
-        2022: faker.random.float(),
-        2023: faker.random.float(),
-        2024: faker.random.float(),
-        childLevel: level,
-        isExpanded: false,
-      }
-    );
-    rows.push(rowData);
-  }
-  return rows;
-}
-
-function createMultiLevelData() {
-  const l1 = createData(5, 0);
-  _.each(l1, (item0) => {
-    const l2 = createData(2, 1, { parentId: item0.id });
-    item0.children = l2;
-  });
-  return l1;
-}
-
-function calculateChildrenTotal(item) {
-  const fieldsForSum = ["2020", "2021", "2022", "2023", "2024", "2025"];
-  _.each(fieldsForSum, (field) => {
-    item[field] = _.sumBy(item.children, field);
-  });
-  return item;
-}
-
-function calculateDataTotals(data) {
-  _.each(data, (item0) => {
-    item0 = calculateChildrenTotal(item0);
-  });
-  return data;
-}
 
 const defaultRows = [
   {
@@ -122,7 +82,7 @@ const defaultRows = [
 ];
 
 function toggleSubRow(state, id) {
-  const { rows } = state;
+  const { rows, ...rest } = state;
   const rowIndex = rows.findIndex((r) => r.id === id);
   const row = rows[rowIndex];
   const children = [...row.children];
@@ -144,11 +104,11 @@ function toggleSubRow(state, id) {
   } else {
     newRows.splice(rowIndex + 1, children.length);
   }
-  return { rows: newRows };
+  return { rows: newRows, ...rest };
 }
 
 function deleteSubRow(state, id) {
-  const { rows } = state;
+  const { rows, ...rest } = state;
   const row = rows.find((r) => r.id === id);
   if (!row || !row.parentId) return rows;
 
@@ -166,13 +126,13 @@ function deleteSubRow(state, id) {
     };
   }
 
-  return { rows: newRows };
+  return { rows: newRows, ...rest };
 }
 
 function insertSubRow(state, data) {
   const rows = [...state.rows];
   if (!data.parentId) {
-    return;
+    return state;
   }
   const newRow = _.extend(
     {
@@ -190,13 +150,13 @@ function insertSubRow(state, data) {
   const childrenLength = parentChildren.length;
   rows[parentRowIndex] = parentRow;
   rows.splice(parentRowIndex + childrenLength, 0, newRow);
-  return { rows };
+  return { ...state, rows };
 }
 
 function updateRow(state, data) {
   const rows = [...state.rows];
   if (!data.parentId) {
-    return { rows };
+    return state;
   }
 
   const parentRowIndex = rows.findIndex((r) => r.id === data.parentId);
@@ -212,7 +172,23 @@ function updateRow(state, data) {
   const viewRowIndex = rows.findIndex((r) => r.id === data.id);
   const viewRow = { ...rows[viewRowIndex] };
   rows[viewRowIndex] = data;
-  return { rows };
+  return { ...state, rows };
+}
+
+function updateData(state, department) {
+  let rows = [...state.rows];
+  let data = [...state.data];
+  let currentDepartment = state.currentDepartment;
+  if (currentDepartment === department) {
+    return state;
+  }
+  const deptIndex = data.findIndex((d) => d.department === department);
+  const curDeptIndex = data.findIndex(
+    (d) => d.department === currentDepartment
+  );
+  data[curDeptIndex].data = [...rows];
+  rows = [...data[deptIndex].data];
+  return { rows, data, currentDepartment: department };
 }
 
 function reducer(state, action) {
@@ -225,31 +201,21 @@ function reducer(state, action) {
       return insertSubRow(state, action.data);
     case "updateRow":
       return updateRow(state, action.data);
+    case "updateData":
+      return updateData(state, action.department);
     default:
       return state;
   }
 }
 
-function currencyView(props, key) {
-  const value = props.row[key];
-  return (
-    <div style={{ textAlign: "right" }}>{currencyFormatter.format(value)}</div>
-  );
-}
-
-function totalView(row, key) {
-  return (
-    <strong>
-      <div className="row-pad" style={{ textAlign: "right" }}>
-        {currencyFormatter.format(row[key])}
-      </div>
-    </strong>
-  );
-}
-
 function Home() {
-  const data = calculateDataTotals(createMultiLevelData());
-  const [state, dispatch] = useReducer(reducer, { rows: data });
+  const data = generateDepartmentData();
+  const departments = getDepartments();
+  const [state, dispatch] = useReducer(reducer, {
+    rows: data[0].data,
+    data: data,
+    currentDepartment: data[0].department,
+  });
   const [showDeletePopup, setShowDeletePopup] = useState(false);
   const [deleteRowValue, setDeleteRowValue] = useState({});
 
@@ -457,8 +423,19 @@ function Home() {
     setShowDeletePopup(false);
   }
 
+  function changeDepartment(department) {
+    console.log("will dispatch");
+    dispatch({ type: "updateData", department: department });
+  }
+
   return (
-    <>
+    <Container className="mx-auto p-2 w-100">
+      <DepartmentSelector
+        className="departmentSelector"
+        value={state.currentDepartment}
+        departments={departments}
+        onChange={(v) => changeDepartment(v)}
+      ></DepartmentSelector>
       <DataGrid
         rowKeyGetter={(row) => row.id}
         rows={state.rows}
@@ -477,7 +454,7 @@ function Home() {
         confirmButtonColor="danger"
         onConfirm={() => onDeleteConfirm(deleteRowValue)}
       />
-    </>
+    </Container>
   );
 }
 

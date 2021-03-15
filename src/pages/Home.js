@@ -318,7 +318,7 @@ function Home() {
         return (
           <div
             class="row-pad"
-            style={{ textAlign: "right", backgroundColor: "#e9e9e9" }}
+            style={{ textAlign: "right", backgroundColor: "#f5f5f5" }}
           >
             {value ? currencyFormatter.format(value) : ""}
           </div>
@@ -334,7 +334,7 @@ function Home() {
         return (
           <div
             class="row-pad"
-            style={{ textAlign: "right", backgroundColor: "#e9e9e9" }}
+            style={{ textAlign: "right", backgroundColor: "#f5f5f5" }}
           >
             {value ? currencyFormatter.format(value) : ""}
           </div>
@@ -358,7 +358,14 @@ function Home() {
       formatter: (props) => {
         const value = props.row["2022"];
         return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
+          <div
+            class="row-pad"
+            style={{
+              textAlign: "right",
+              backgroundColor:
+                props.row["childLevel"] === 0 ? "#f5f5f5" : "white",
+            }}
+          >
             {value ? currencyFormatter.format(value) : ""}
           </div>
         );
@@ -371,7 +378,14 @@ function Home() {
       formatter: (props) => {
         const value = props.row["2023"];
         return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
+          <div
+            class="row-pad"
+            style={{
+              textAlign: "right",
+              backgroundColor:
+                props.row["childLevel"] === 0 ? "#f5f5f5" : "white",
+            }}
+          >
             {_.isNumber(value) ? currencyFormatter.format(value) : ""}
           </div>
         );
@@ -394,7 +408,14 @@ function Home() {
       formatter: (props) => {
         const value = props.row["2024"];
         return (
-          <div class="row-pad" style={{ textAlign: "right" }}>
+          <div
+            class="row-pad"
+            style={{
+              textAlign: "right",
+              backgroundColor:
+                props.row["childLevel"] === 0 ? "#f5f5f5" : "white",
+            }}
+          >
             {value ? currencyFormatter.format(value) : ""}
           </div>
         );

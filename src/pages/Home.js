@@ -138,6 +138,7 @@ function insertSubRow(state, data) {
     {
       id: uuidv4(),
       childLevel: 1,
+      newRow: true,
     },
     { ...data }
   );
@@ -157,6 +158,10 @@ function updateRow(state, data) {
   const rows = [...state.rows];
   if (!data.parentId) {
     return state;
+  }
+
+  if (data.newRow) {
+    delete data.newRow;
   }
 
   const parentRowIndex = rows.findIndex((r) => r.id === data.parentId);
@@ -293,21 +298,21 @@ function Home() {
           </>
         );
       },
-      editable: true,
       editorOptions: {
         editOnClick: true,
       },
-      editor: (p) =>
-        p.row.childLevel > 0 &&
-        !p.row.emptyRow && (
-          <SelectEditor
-            value={p.row.title}
-            onChange={(value) => onRowTitleChange({ ...p.row, title: value })}
-            options={defaultRows.map((c) => ({ value: c.id, label: c.title }))}
-            rowHeight={p.rowHeight}
-            menuPortalTarget={p.editorPortalTarget}
-          />
-        ),
+      editable: (row) => {
+        return row.childLevel > 0 && row.newRow === true;
+      },
+      editor: (p) => (
+        <SelectEditor
+          value={p.row.title}
+          onChange={(value) => onRowTitleChange({ ...p.row, title: value })}
+          options={defaultRows.map((c) => ({ value: c.id, label: c.title }))}
+          rowHeight={p.rowHeight}
+          menuPortalTarget={p.editorPortalTarget}
+        />
+      ),
     },
     {
       key: "2020",
@@ -347,6 +352,9 @@ function Home() {
       width: 150,
       editorOptions: {
         editOnClick: true,
+      },
+      editable: (row) => {
+        return row["emptyRow"] === false || row["childLevel"] > 0;
       },
       editor: (p) => (
         <NumberEditor
@@ -393,6 +401,9 @@ function Home() {
       editorOptions: {
         editOnClick: true,
       },
+      editable: (row) => {
+        return row["emptyRow"] === false || row["childLevel"] > 0;
+      },
       editor: (p) => (
         <NumberEditor
           disabled={p.row["emptyRow"] || p.row["childLevel"] === 0}
@@ -422,6 +433,9 @@ function Home() {
       },
       editorOptions: {
         editOnClick: true,
+      },
+      editable: (row) => {
+        return row["emptyRow"] === false || row["childLevel"] > 0;
       },
       editor: (p) => (
         <NumberEditor

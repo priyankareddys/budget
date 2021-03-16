@@ -17,7 +17,7 @@ const DepartmentSelector = ({
       <Row className="my-3 mx-0">
         <Col sm={12}>
           <div className="d-inline-flex float-left align-items-center">
-            <span className="float-left mr-5">Department</span>
+            <span className="float-left mr-3">Department</span>
             <div className="float-left w-250px">
               <Select
                 autoFocus
